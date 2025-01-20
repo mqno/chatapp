@@ -11,18 +11,11 @@ export function Message({ message, currentUser }: MessageProps) {
 
   return (
     <div className={`message ${isUserMessage ? "message--user" : "message--other"}`}>
-     {!isUserMessage && <b>
-        {`${message.user} : `}
-            &nbsp;
-      </b>}
       <div className="message__bubble">
+        <span className="nameTag">{message.user}</span>
         <Text className="message__content">{message.message}</Text>
         <Text className="message__time">{formattedTime}</Text>
       </div>
-      {isUserMessage && <b>
-        &nbsp;
-        {` : ${message.user}`}
-      </b>}
     </div>
   )
 }
