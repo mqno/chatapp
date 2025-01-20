@@ -27,7 +27,7 @@ export default function Home() {
 
   useEffect(() => {
     scrollToBottom()
-  }, [messages])
+  }, [messages, username])
 
   useEffect(() => {
     const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY;
