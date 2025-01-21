@@ -56,11 +56,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       
       return res.status(200).json({ success: true });
     } else if (req.method === 'GET') {
-      const messages = await db
+      const messages = (await db
         .collection('messages')
         .find()  
-        .limit(50)
-        .toArray();
+        .limit(100)
+        .sort({ timestamp: -1 })
+        .toArray())
+        .reverse();
       
       return res.status(200).json(messages);
     }
