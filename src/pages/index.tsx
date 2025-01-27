@@ -5,67 +5,122 @@ import { Message } from '../components/Message';
 import { MessageInput } from '../components/MessageInput';
 import { UserNameInput } from '../components/UserNameInput';
 import type { ChatMessage } from '../types/chat';
+import { Button, Input, Loader } from '@mantine/core';
+import { PlusCircle } from "lucide-react"
 
 
 export default function Home() {
-  const [messages1, setMessages1] = useState<ChatMessage[]>([]);
-  const [messages2, setMessages2] = useState<ChatMessage[]>([]);
-  const [selectedChannel, setSelectedChannel] = useState<number>(1);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [selectedChannel, setSelectedChannel] = useState< string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
+  const [channels, setChannels] = useState<string[]>([]);
+  const [newChName, setNewChName] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null)
-
+  
+  const pusher = useRef<Pusher | null>(null);
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
+  
+  
+  useEffect(() => {
+    let mounted = true;
+    const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY;
+    const pusherCluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
+    if (mounted) {
+      const _pusher = new Pusher(pusherKey as string, {
+        cluster: pusherCluster as string,
+      });
+      pusher.current = _pusher;
+      
+    }
+    return () => {
+      mounted = false;
+    }
+  }, []);
+
+
+  
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages,  username])
+
+  const getChannels = async () => {
+    const channelList = pusher.current?.subscribe('chat');
+    channelList?.bind('channels', (data: string) => {
+      setChannels((prev) => [...prev, data]);
+    }) 
+    const response = await fetch('/api/getChannelList');
+    const data = await response.json();
+    setChannels(data);
+    return data;
+  }
+
+  useEffect(() => {
+    getChannels();
+  }, []);
 
   useEffect(() => {
     const username = localStorage.getItem('registeredAs');
     const selectedCh = localStorage.getItem('registeredChannel');
     if (username) {
       setUsername(username);
-      setSelectedChannel(Number(selectedCh));
+      setSelectedChannel(selectedCh);
     }
-  }
-  , []);
+    
+    if(selectedCh === undefined || selectedCh === null) return
+    fetchMessages(selectedCh);
+    
+    return () => {
+      pusher?.current?.unsubscribe('chat');
+      pusher?.current?.disconnect();
+    };
+  }, []);
   
+  const fetchMessages = async (selectedChannel: string) => {
+    const channel = pusher.current?.subscribe('chat');
+    channel?.bind(selectedChannel, (data: ChatMessage) => {
+      setMessages((prev) => [...prev, data]);
+    }) 
 
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages1, messages2, username])
+    const response = await fetch(`/api/messages?channelName=${selectedChannel}`);
+    const data = await response.json();
+    // Messages from API are already sorted newest first
+    setMessages(data);
+  };
 
-  useEffect(() => {
-    const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY;
-    const pusherCluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
 
-    if (!pusherKey || !pusherCluster) {
-      console.error('Pusher configuration missing');
+  const selectChannelHandler = (channelName: string) => {
+    setSelectedChannel(channelName);
+    localStorage.setItem('registeredChannel', channelName);
+    fetchMessages(channelName);
+  }
+
+  const channelCreateHandler = async () => {
+    setLoading(true);
+    if (!newChName) {
+      alert('Please enter channel name');
       return;
     }
 
-    const pusher = new Pusher(pusherKey, {
-      cluster: pusherCluster,
-    });
-
-    const channel = pusher.subscribe('chat');
-    selectedChannel === 1 ? channel.bind('message', (data: ChatMessage) => {
-      setMessages1((prev) => [...prev,data]);
-    }) : channel.bind('message2', (data: ChatMessage) => {
-      setMessages2((prev) => [...prev,data]);
-    });
-    
-    fetchMessages();
-
-    return () => {
-      pusher.unsubscribe('chat');
-      pusher.disconnect();
-    };
-  }, []);
-
-  const fetchMessages = async () => {
-    const response = await fetch(selectedChannel === 1 ? '/api/messages' : '/api/messages2');
-    const data = await response.json();
-    // Messages from API are already sorted newest first
-    selectedChannel === 1 ? setMessages1(data) : setMessages2(data)
+    try {
+      await fetch('/api/createChannel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          channelName: newChName,
+        }),
+      });
+      setNewChName('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
 
@@ -79,27 +134,52 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div style={{ paddingTop:'50px'}}>
-      
+      <h1>
+        {selectedChannel ? selectedChannel.split('-dbId-')?.[0] : 'ChannelList'}
+      </h1>
+      <div style={{ paddingTop: '50px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}>
+          {selectedChannel ? <>
+            <Button variant="filled" color="grape" onClick={() => setSelectedChannel(null)} >BACK</Button>
+          </> : <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+              <Input onChange={(e)=>setNewChName(e?.target?.value)} placeholder="Channel name"/>
+              <Button variant="filled" color="grape"
+                leftSection={
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
+                    {loading ? <><Loader size="1rem" color="white" /> Loading...</> : <><PlusCircle /> Create New</>}
+                  </div>
+                }
+                onClick={() => channelCreateHandler()} />
+          </div>}
+        </div>
         <div className="chat-container" >
           {
             !username ? (
-              <UserNameInput setUserInfo={(val: string) => setUsername(val)} user={username} setSelectedChannel={setSelectedChannel} selectedChannel={Boolean(selectedChannel)}/>
-
+              <UserNameInput setUserInfo={(val: string) => setUsername(val)} user={username} />
             ) : (
+                !selectedChannel ? (
+                  <> {channels.map((channelName, idx) => (
+                    <div
+                      key={`chnames_${idx}`}
+                      onClick={() => selectChannelHandler(channelName)}
+                      style={{ color: '#FFF', textAlign: 'center', padding: '8px', margin: '8px', border: 'solid 1px #fff', backgroundColor: '#1c1c1c', borderRadius:'8px',cursor:'pointer' }}>
+                      <h2>{channelName.split('-dbId-')?.[0]}</h2>
+                    </div>
+                  ))}
+                    </>
+                ) :(
                 <>
                   <div className="messages">
-                    {(selectedChannel === 1 ? messages1 : messages2).map((message) => (
+                    {messages.map((message) => (
                       <Message key={message._id} message={message} currentUser={username}  />
                     ))}
                     <div ref={messagesEndRef} />
                   </div>
-                  <MessageInput username={username} />
+                  <MessageInput username={username} selectedChannel={selectedChannel}/>
                 </>
+                )
             )
-          }
-          
-        
+          }        
         </div>
       </div>
     </>

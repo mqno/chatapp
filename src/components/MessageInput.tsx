@@ -4,9 +4,10 @@ import { useState } from "react"
 
 interface MessageInputProps {
   username: string | null;
+  selectedChannel: string | null;
 }
 
-export function MessageInput({ username }: MessageInputProps) {
+export function MessageInput({ username, selectedChannel }: MessageInputProps) {
   const [message, setMessage] = useState("")
   const [loading, setLoading] = useState(false)
 
@@ -22,6 +23,7 @@ export function MessageInput({ username }: MessageInputProps) {
         body: JSON.stringify({
           message,
           user: username,
+          channelName: selectedChannel,
         }),
       });
 
