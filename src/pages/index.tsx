@@ -8,7 +8,9 @@ import type { ChatMessage } from '../types/chat';
 
 
 export default function Home() {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages1, setMessages1] = useState<ChatMessage[]>([]);
+  const [messages2, setMessages2] = useState<ChatMessage[]>([]);
+  const [selectedChannel, setSelectedChannel] = useState<number>(1);
   const [username, setUsername] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -18,8 +20,10 @@ export default function Home() {
 
   useEffect(() => {
     const username = localStorage.getItem('registeredAs');
+    const selectedCh = localStorage.getItem('registeredChannel');
     if (username) {
       setUsername(username);
+      setSelectedChannel(Number(selectedCh));
     }
   }
   , []);
@@ -27,7 +31,7 @@ export default function Home() {
 
   useEffect(() => {
     scrollToBottom()
-  }, [messages, username])
+  }, [messages1, messages2, username])
 
   useEffect(() => {
     const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY;
@@ -43,10 +47,12 @@ export default function Home() {
     });
 
     const channel = pusher.subscribe('chat');
-    channel.bind('message', (data: ChatMessage) => {
-      setMessages((prev) => [...prev,data]);
+    selectedChannel === 1 ? channel.bind('message', (data: ChatMessage) => {
+      setMessages1((prev) => [...prev,data]);
+    }) : channel.bind('message2', (data: ChatMessage) => {
+      setMessages2((prev) => [...prev,data]);
     });
-
+    
     fetchMessages();
 
     return () => {
@@ -56,10 +62,10 @@ export default function Home() {
   }, []);
 
   const fetchMessages = async () => {
-    const response = await fetch('/api/messages');
+    const response = await fetch(selectedChannel === 1 ? '/api/messages' : '/api/messages2');
     const data = await response.json();
     // Messages from API are already sorted newest first
-    setMessages(data);
+    selectedChannel === 1 ? setMessages1(data) : setMessages2(data)
   };
 
 
@@ -78,12 +84,12 @@ export default function Home() {
         <div className="chat-container" >
           {
             !username ? (
-              <UserNameInput setUserInfo={(val: string) => setUsername(val)} user={username} />
+              <UserNameInput setUserInfo={(val: string) => setUsername(val)} user={username} setSelectedChannel={setSelectedChannel} selectedChannel={Boolean(selectedChannel)}/>
 
             ) : (
                 <>
                   <div className="messages">
-                    {messages.map((message) => (
+                    {(selectedChannel === 1 ? messages1 : messages2).map((message) => (
                       <Message key={message._id} message={message} currentUser={username}  />
                     ))}
                     <div ref={messagesEndRef} />

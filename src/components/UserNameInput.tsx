@@ -1,15 +1,18 @@
-import { ActionIcon, Loader, TextInput } from "@mantine/core"
+import { ActionIcon, Loader, TextInput, Switch } from "@mantine/core"
 import { PlusCircle } from "lucide-react"
 import { useState } from "react"
 
 interface UserNameInputProps {
   setUserInfo: (text: string) => void;
   user: string | null;
+  setSelectedChannel: (val:any) => void
+  selectedChannel: boolean
 }
 
-export function UserNameInput({ setUserInfo, user }: UserNameInputProps) {
+export function UserNameInput({ setUserInfo, user, setSelectedChannel, selectedChannel }: UserNameInputProps) {
   const [loading, setLoading] = useState(false)
   const [username, setUsername] = useState(user)
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -18,6 +21,7 @@ export function UserNameInput({ setUserInfo, user }: UserNameInputProps) {
     try {
       await setUserInfo(username);
       localStorage.setItem('registeredAs', username);
+      localStorage.setItem('registeredChannel', selectedChannel);
       setLoading(false);
     } catch (error) {
       console.error('Error register issue:', error);
@@ -49,6 +53,10 @@ export function UserNameInput({ setUserInfo, user }: UserNameInputProps) {
           },
         }}
       />
+    <Switch
+      checked={selectedChannel}
+      onChange={(event) => setSelectedChannel(Number(event.currentTarget.checked))}
+    />
     </form>
   )
 }
