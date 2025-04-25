@@ -69,13 +69,6 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    pusher.current?.bind_global((eventName: string, data: any) => {
-      console.log('Global event:', eventName, data);
-    });
-
-  }, []);
-
-  useEffect(() => {
     const username = localStorage.getItem('registeredAs');
     const selectedCh = localStorage.getItem('registeredChannel');
     if (username) {
