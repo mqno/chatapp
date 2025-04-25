@@ -27,10 +27,15 @@ export default function Home() {
   useEffect(() => {
     let mounted = true;
     const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY;
-    const pusherCluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
+    // const pusherCluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
     if (mounted) {
       const _pusher = new Pusher(pusherKey as string, {
-        cluster: pusherCluster as string,
+        wsHost: 'soketi.ozhome.site',
+        wsPort: 6001,
+        enabledTransports: ['ws', 'wss'],
+        forceTLS: false, // Add this if not using SSL
+        cluster: 'mt1', // Add default cluster
+        disableStats: true, // Disable Pusher stats
       });
       pusher.current = _pusher;
       
@@ -45,6 +50,7 @@ export default function Home() {
 
   useEffect(() => {
     scrollToBottom()
+    
   }, [messages,  username])
 
   const getChannels = async () => {
@@ -60,6 +66,13 @@ export default function Home() {
 
   useEffect(() => {
     getChannels();
+  }, []);
+
+  useEffect(() => {
+    pusher.current?.bind_global((eventName: string, data: any) => {
+      console.log('Global event:', eventName, data);
+    });
+
   }, []);
 
   useEffect(() => {

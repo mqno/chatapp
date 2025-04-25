@@ -17,8 +17,10 @@ const pusher = new Pusher({
   appId: pusherAppId,
   key: pusherKey,
   secret: pusherSecret,
-  cluster: pusherCluster,
-  useTLS: true,
+  host: 'soketi.ozhome.site',
+  useTLS: false,
+  cluster: 'mt1',
+  timeout: 1000,
 });
 
 // Cache the MongoDB connection
