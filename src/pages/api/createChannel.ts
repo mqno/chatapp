@@ -8,6 +8,7 @@ const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY;
 const pusherSecret = process.env.PUSHER_SECRET;
 const pusherCluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
 const mongoUrl = process.env.MONGODB_URI as string;
+const soketiHost = process.env.SOKETI_HOST;
 
 if (!pusherAppId || !pusherKey || !pusherSecret || !pusherCluster || !mongoUrl) {
   throw new Error('Missing environment variables');
@@ -17,7 +18,7 @@ const pusher = new Pusher({
   appId: pusherAppId,
   key: pusherKey,
   secret: pusherSecret,
-  host: 'soketi.ozhome.site',
+  host: soketiHost,
   useTLS: false,
   cluster: 'mt1',
   timeout: 1000,

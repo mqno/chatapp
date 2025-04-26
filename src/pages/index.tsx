@@ -27,10 +27,11 @@ export default function Home() {
   useEffect(() => {
     let mounted = true;
     const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY;
+    const soketiHost = process.env.SOKETI_HOST;
     // const pusherCluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
     if (mounted) {
       const _pusher = new Pusher(pusherKey as string, {
-        wsHost: 'soketi.ozhome.site',
+        wsHost: soketiHost,
         wsPort: 6001,
         enabledTransports: ['ws', 'wss'],
         forceTLS: false, // Add this if not using SSL
