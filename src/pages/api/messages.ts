@@ -19,7 +19,7 @@ const pusher = new Pusher({
   secret: pusherSecret,
   host: soketiHost,
   useTLS: false,
-  cluster: 'mt1',
+  cluster: pusherCluster,
   timeout: 1000,
 
 });

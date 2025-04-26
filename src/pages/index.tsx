@@ -28,14 +28,14 @@ export default function Home() {
     let mounted = true;
     const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY;
     const soketiHost = process.env.SOKETI_HOST;
-    // const pusherCluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
+    const pusherCluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER || 'mt1';
     if (mounted) {
       const _pusher = new Pusher(pusherKey as string, {
         wsHost: soketiHost,
         wsPort: 6001,
         enabledTransports: ['ws', 'wss'],
         forceTLS: false, // Add this if not using SSL
-        cluster: 'mt1', // Add default cluster
+        cluster: pusherCluster, // Add default cluster
         disableStats: true, // Disable Pusher stats
       });
       pusher.current = _pusher;
@@ -45,6 +45,8 @@ export default function Home() {
       mounted = false;
     }
   }, []);
+
+  console.log('+++++++++pusher', pusher.current);
 
 
   
