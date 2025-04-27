@@ -26,17 +26,16 @@ export default function Home() {
   
   useEffect(() => {
     let mounted = true;
-    const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY;
-    const soketiHost = process.env.SOKETI_HOST;
+    const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY ;
     const pusherCluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER || 'mt1';
+    const soketiHost = process.env.NEXT_PUBLIC_SOKETI_HOST;
     if (mounted) {
       const _pusher = new Pusher(pusherKey as string, {
         wsHost: soketiHost,
         wsPort: 6001,
-        enabledTransports: ['ws', 'wss'],
-        forceTLS: false, // Add this if not using SSL
-        cluster: pusherCluster, // Add default cluster
-        disableStats: true, // Disable Pusher stats
+        enabledTransports: ['wss', 'ws'],
+        forceTLS: false,
+        cluster: pusherCluster
       });
       pusher.current = _pusher;
       
@@ -45,8 +44,6 @@ export default function Home() {
       mounted = false;
     }
   }, []);
-
-  console.log('+++++++++pusher', pusher.current);
 
 
   

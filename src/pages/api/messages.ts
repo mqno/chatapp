@@ -5,9 +5,9 @@ import Pusher from 'pusher';
 const pusherAppId = process.env.PUSHER_APP_ID;
 const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY;
 const pusherSecret = process.env.PUSHER_SECRET;
-const pusherCluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
+const pusherCluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER || 'mt1';
 const mongoUrl = process.env.MONGODB_URI as string;
-const soketiHost = process.env.SOKETI_HOST || 'soketi.ozhome.site';
+const soketiHost = process.env.NEXT_PUBLIC_SOKETI_HOST;
 
 if (!pusherAppId || !pusherKey || !pusherSecret || !pusherCluster || !mongoUrl) {
   throw new Error('Missing environment variables');
