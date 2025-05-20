@@ -33,8 +33,10 @@ export default function Home() {
       const _pusher = new Pusher(pusherKey as string, {
         wsHost: soketiHost,
         wsPort: 6001,
+        forceTLS: true,
+        encrypted: true,
+        disableStats: true,
         enabledTransports: ['wss', 'ws'],
-        forceTLS: false,
         cluster: pusherCluster
       });
       pusher.current = _pusher;
