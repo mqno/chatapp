@@ -34,7 +34,6 @@ export default function Home() {
         wsHost: soketiHost,
         wsPort: 6001,
         forceTLS: true,
-        encrypted: true,
         disableStats: true,
         enabledTransports: ['wss', 'ws'],
         cluster: pusherCluster
